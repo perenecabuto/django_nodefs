@@ -1,0 +1,16 @@
+[
+  {
+    model: 'fixtures.thing',
+    pk: 1,
+    fields: {
+      label: 'FirstThing',
+    }
+ },
+ {
+    model: 'fixtures.thing',
+    pk: 2,
+    fields: {
+      label: 'SecondThing',
+    }
+  }
+]

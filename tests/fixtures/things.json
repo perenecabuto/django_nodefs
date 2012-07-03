@@ -1,0 +1,18 @@
+[
+  {
+    "model": "fixtures.thing",
+    "pk": 1,
+    "fields": {
+      "label": "FirstThing",
+      "create_date": "2012-07-03T00:00:00.000"
+    }
+ },
+ {
+    "model": "fixtures.thing",
+    "pk": 2,
+    "fields": {
+      "label": "SecondThing",
+      "create_date": "2012-06-03T00:00:00.000"
+    }
+  }
+]
