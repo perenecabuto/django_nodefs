@@ -1,9 +1,24 @@
 [
   {
+    "model": "fixtures.boxOfThings",
+    "pk": 1,
+    "fields": {
+      "serial_number": "B1-1234567890"
+    }
+  },
+  {
+    "model": "fixtures.boxOfThings",
+    "pk": 2,
+    "fields": {
+      "serial_number": "B2-1234567890"
+    }
+  },
+  {
     "model": "fixtures.thing",
     "pk": 1,
     "fields": {
-      "label": "FirstThing",
+      "box": 1,
+      "label": "FirstThingOfBox1",
       "create_date": "2012-07-03T00:00:00.000"
     }
  },
@@ -11,8 +26,54 @@
     "model": "fixtures.thing",
     "pk": 2,
     "fields": {
-      "label": "SecondThing",
+        "box": 1,
+      "label": "SecondThingOfBox1",
       "create_date": "2012-06-03T00:00:00.000"
+    }
+  },
+  {
+    "model": "fixtures.thing",
+    "pk": 3,
+    "fields": {
+        "box": 1,
+      "label": "ThirdThingOfBox1",
+      "create_date": "2012-05-03T00:00:00.000"
+    }
+  },
+  {
+    "model": "fixtures.thing",
+    "pk": 4,
+    "fields": {
+        "box": 1,
+      "label": "LostThingOfBox1",
+      "create_date": "2011-12-01T00:00:00.000"
+    }
+  },
+  {
+    "model": "fixtures.thing",
+    "pk": 5,
+    "fields": {
+        "box": 2,
+      "label": "FirstThingOfBox2",
+      "create_date": "2011-12-01T00:00:00.000"
+    }
+  },
+  {
+    "model": "fixtures.thing",
+    "pk": 6,
+    "fields": {
+        "box": 2,
+      "label": "SecondThingOfBox2",
+      "create_date": "2012-06-03T00:00:00.000"
+    }
+  },
+  {
+    "model": "fixtures.thing",
+    "pk": 7,
+    "fields": {
+        "box": 2,
+      "label": "ThirdThingOfBox2",
+      "create_date": "2012-05-03T00:00:00.000"
     }
   }
 ]

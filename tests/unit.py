@@ -3,7 +3,7 @@
 from django.test import TestCase
 from django.db import connection
 from mock import mocksignature
-from selectors import ModelSelector
+from selectors import ModelSelector, ModelFileSelector
 from node_fs.lib.model import AbstractNode
 from fixtures.models import Thing
 
@@ -39,5 +39,12 @@ class TestModelSelector(TestCase):
         abstract_node = abstract_node_class(self)
         nodes = selector.get_nodes(abstract_node)
 
-        self.assertIsInstance(nodes, list)
-        self.assertGreater(len(nodes), 1)
+        self.assertIsInstance(nodes, set)
+        self.assertGreater(len(nodes), 0)
+
+
+class TestModelFileSelector(TestCase):
+
+    def test_instance(self):
+        selector = ModelFileSelector()
+        self.assertTrue(selector)
