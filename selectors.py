@@ -2,6 +2,7 @@
 
 from node_fs.lib.selectors import Selector
 from node_fs.lib.model import Node
+from django.core.files import File
 import re
 
 
@@ -13,16 +14,9 @@ class ModelSelector(Selector):
 
     def get_nodes(self, abstract_node, base_node=None):
         nodes = set()
-        criteria = self.model_class.objects
+        query_set = self.get_query_set(base_node, abstract_node)
 
-        for node in self.get_selector_nodes(base_node):
-            criteria = criteria.filter(**node.abstract_node.selector.get_filter(node.pattern, abstract_node))
-
-        #print "\n---->"
-        #print criteria.all().query
-        #print "<----\n"
-
-        for obj in criteria.only(*self.parse_imediate_fields()).distinct():
+        for obj in query_set.all():
             projection = self.parse_projection(obj)
             nodes.add(Node(
                 abstract_node=abstract_node,
@@ -30,9 +24,24 @@ class ModelSelector(Selector):
                 pattern=projection,
             ))
 
-        return nodes
+        return list(nodes)
 
-    def get_filter(self, pattern, abstract_node=None):
+    def get_query_set(self, base_node, abstract_node=None):
+        criteria = self.model_class.objects
+
+        if not abstract_node:
+            abstract_node = base_node.abstract_node
+
+        for node in self.get_selector_nodes(base_node):
+            criteria = criteria.filter(**node.abstract_node.selector.get_filter(node.pattern, abstract_node))
+
+        criteria.only(*self.parse_imediate_fields()).distinct()
+
+        #print "\n---->", criteria.all().query, "<----\n"
+
+        return criteria
+
+    def get_filter(self, pattern, abstract_node):
         filter_query = {}
         parsed_fields = self.parse_fields()
         parsed_values = self.parse_pattern_values(pattern)
@@ -108,5 +117,69 @@ class ModelSelector(Selector):
         return self.projection % binds
 
 
-class ModelFileSelector(Selector):
-    pass
+class ModelFileSelector(ModelSelector):
+    """
+    Mostra o arquivo do nó selecionado.
+    Este arquivo será o único filho gerado por este seletor.
+
+    Ex.:
+        boxes_of_things/ <--- StaticSelector - Gera somente este nó
+            B1-1234567890/ <--- ModelSelector - Gera N nós
+                FirstThingOfBox1/ <--- ModelSelector - Gera N nós
+                    arquivo.txt <--- ModelFileSelector - Gera somente este nó,
+                                     que é o arquvio do Thing(label=FirstThingOfBox1)
+    """
+
+    file_field_name = None
+    is_leaf_generator = True
+
+    def __init__(self, projection, file_field_name, model_class):
+        self.projection = projection
+        self.model_class = model_class
+        self.file_field_name = file_field_name
+
+    def get_nodes(self, abstract_node, base_node=None):
+        nodes = super(ModelFileSelector, self).get_nodes(abstract_node, base_node)
+
+        if len(nodes) > 1:
+            raise Exception('ModelFileSelector.get_nodes should not return more than one node')
+
+        from os.path import basename
+
+        nodes[0].pattern = basename(nodes[0].pattern)
+
+        return nodes
+
+    def read_node_contents(self, node, size=-1, offset=0):
+        return self.get_object_file_field(node).read()
+
+    def write_node_contents(self, node, data, reset=False):
+        mode = reset and 'w' or 'a'
+
+        with open(self.get_object_file_field(node).path, mode) as f:
+            f.write(data)
+            f.close()
+
+    def node_contents_length(self, node):
+        return len(self.get_object_file_field(node))
+
+    def add_node(self, node):
+        from tempfile import mkstemp
+        from os import remove as rm
+
+        obj = self.get_object(node)
+        tmp_f = open(mkstemp()[1])
+        f = File(tmp_f)
+        f.name = node.pattern
+
+        setattr(obj, self.file_field_name, f)
+        obj.save()
+
+        tmp_f.close()
+        rm(tmp_f.name)
+
+    def get_object(self, node):
+        return self.get_query_set(node).all()[0]
+
+    def get_object_file_field(self, node):
+        return getattr(self.get_object(node), self.file_field_name)
