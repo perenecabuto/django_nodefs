@@ -2,11 +2,11 @@
 
 from django.test import TestCase
 from django.db import connection
-from node_fs.lib.model import NodeManager
-from node_fs.lib import conf
-from fixtures import profiles
+from nodefs.lib.model import NodeManager
+from nodefs.lib import conf
+from fixtures import nodefs_schema
 
-conf.node_profiles = profiles.schema
+conf.node_profiles = nodefs_schema.schema
 
 
 class FunctionalTest(TestCase):

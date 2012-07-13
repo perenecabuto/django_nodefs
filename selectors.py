@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from node_fs.lib.selectors import Selector
-from node_fs.lib.model import Node
+from nodefs.lib.selectors import Selector
+from nodefs.lib.model import Node
 from django.core.files import File
 import re
 

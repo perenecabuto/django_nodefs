@@ -8,8 +8,9 @@ from django.db import connection
 from django.core.files import File
 from mock import mocksignature
 from selectors import ModelSelector, ModelFileSelector
-from node_fs.lib.model import Node, AbstractNode
+from nodefs.lib.model import Node, AbstractNode
 from fixtures.models import BoxOfThings, Thing
+from management.commands.nodefs_actions import Command
 
 
 class TestModelSelector(TestCase):
@@ -124,3 +125,14 @@ class TestModelFileSelector(TestCase):
         node = selector.get_nodes(abs_node)[0]
 
         self.assertEqual(node.pattern, new_node.pattern)
+
+
+class TestCommand(TestCase):
+
+    def test_instance(self):
+        command = Command()
+        self.assertTrue(command)
+
+    def test_handle_needs_path_on_args(self):
+        command = Command()
+        command.handle('mnt/')

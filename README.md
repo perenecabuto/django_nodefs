@@ -1,4 +1,4 @@
-django_node_fs
+django_nodefs
 ==============
 
 Extends NodeFS to work with django
