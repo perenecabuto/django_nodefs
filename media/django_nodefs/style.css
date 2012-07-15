@@ -1,0 +1,207 @@
+@font-face {
+    font-family: "minyanouvellerg";
+    src: url(minyanouvellerg.ttf) format(truetype);
+}
+
+@font-face {
+    font-family: "SimplyChalky";
+    src: url(SimplyChalky.ttf) format(truetype);
+}
+
+@font-face {
+    font-family: "BlackBoard";
+    src: url(BlackBoard.ttf) format(truetype);
+}
+
+body {
+    color: #333;
+    font-family: "minyanouvellerg", Arial, sans;
+    font-size: 16px;
+}
+
+.container {
+    margin: auto auto;
+    position: relative;
+    background-color: #fefefe;
+    width: 600px;
+    height: 80%;
+    margin-top: 50px;
+    padding-left: 30px;
+    padding-top: 30px;
+    box-shadow: 5px 5px 10px 2px #ccc;
+}
+
+h1.page-title {
+    font-family: "BlackBoard";
+    font-size: 44px;
+    margin-bottom: 20px;
+    font-weight: normal;
+}
+
+a {
+    color: #333;
+}
+
+a:visited {
+    color: #555;
+}
+
+#panel {
+    color: #333;
+    font-family: "minyanouvellerg", sans-serif;
+    margin-bottom: 30px;
+}
+
+.topic {
+    color: #E6E6E6;
+    background-color: #444;
+    width: 525px;
+    margin-bottom: 20px;
+    padding: 5px;
+    padding-top: 7px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.action-items ul {
+    display: inline-block;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.action-items > ul li a {
+    text-decoration: none;
+    text-shadow: 1px 1px 0px #fff;
+}
+
+.action-items a:hover {
+    color: #000;
+}
+
+.action-items > ul li {
+    margin-bottom: 10px;
+}
+
+/* Sub menu */
+.action-items > ul li ul {
+    display: inline-block;
+}
+
+.action-items > ul li li {
+    display: none;
+    margin-right: 10px;
+}
+
+.action-items > ul li:hover li {
+    display: inline;
+}
+
+.action-items > ul li:hover ul {
+    box-shadow: 2px 2px 3px #666;
+}
+
+.action-items > ul li li:first-child {
+    display: inline;
+}
+
+/* account */
+
+.account {
+    margin-bottom: 20px;
+    opacity: 0.9;
+    width: 540px;
+}
+
+.account:hover {
+    opacity: 1;
+}
+
+.account .account-name {
+    width: 295px;
+    display: inline-block;
+}
+
+.account input[type=button] {
+    background-color: #333;
+    border: none;
+    color: #fff;
+    padding: 5px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.status-and-action {
+    width: 200px;
+    text-align: left;
+}
+
+.download-account,
+.upload-account
+{
+    width: 33px;
+}
+
+.download-account {
+    background-image: url(download.png);
+    background-repeat: no-repeat;
+    background-position-y: -2px;
+}
+
+.upload-account {
+    background-image: url(upload.png);
+    background-repeat: no-repeat;
+}
+
+
+/* Tree */
+.nodefs {
+    float: left;
+    position: absolute;
+    top: -38px;
+    left: -222px;
+    margin: auto auto;
+}
+
+.nodefs .tree .node {
+    font-weight: bold;
+    margin-bottom: 5px;
+    padding-left: 10px;
+    cursor: pointer;
+}
+
+.nodefs .tree .node a:active {
+    color: #666;
+}
+
+.nodefs .tree .node a {
+    padding-right: 15px;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    -khtml-user-select: none;
+    user-select: none;
+}
+
+.nodefs .tree .tree {
+    margin-top: 5px;
+    margin-bottom: 10px;
+    border-left: 1px dashed #444;
+}
+
+.nodefs .tree .node.open > a {
+    background-image: url(open_arrow.png);
+    background-repeat: no-repeat;
+    background-position-x: right;
+}
+
+.nodefs .tree .node.closed > a {
+    background-image: url(closed_arrow.png);
+    background-repeat: no-repeat;
+    background-position-x: right;
+    background-position-y: 2px;
+}
+
+.nodefs .tree .node.closed > .tree {
+    display: none;
+}

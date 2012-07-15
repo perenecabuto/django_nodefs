@@ -1,5 +1,6 @@
 *.swp
-media/*/*
+#media/*/*
+static/*
 log/*
 *.py[co]
 build
