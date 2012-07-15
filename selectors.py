@@ -73,7 +73,7 @@ class ModelSelector(Selector):
 
         return model_selector_nodes
 
-    def matches_node_pattern(self, abstract_node, pattern):
+    def matches_node_pattern(self, parent_node, pattern):
         return bool(self.parse_pattern_values(pattern))
 
     def parse_pattern_values(self, pattern):
@@ -144,6 +144,11 @@ class ModelFileSelector(ModelSelector):
         if len(nodes) > 1:
             raise Exception('ModelFileSelector.get_nodes should not return more than one node')
 
+        if not nodes[0].pattern:
+            return []
+
+        nodes[0].is_leaf = True
+
         from os.path import basename
 
         nodes[0].pattern = basename(nodes[0].pattern)
@@ -161,7 +166,10 @@ class ModelFileSelector(ModelSelector):
             f.close()
 
     def node_contents_length(self, node):
-        return len(self.get_object_file_field(node))
+        try:
+            return len(self.get_object_file_field(node))
+        except:
+            return 0
 
     def add_node(self, node):
         from tempfile import mkstemp
@@ -171,6 +179,11 @@ class ModelFileSelector(ModelSelector):
         tmp_f = open(mkstemp()[1])
         f = File(tmp_f)
         f.name = node.pattern
+
+        old_file = getattr(obj, self.file_field_name)
+
+        if old_file:
+            rm(old_file.name)
 
         setattr(obj, self.file_field_name, f)
         obj.save()

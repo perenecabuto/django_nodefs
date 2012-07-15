@@ -10,7 +10,7 @@ from mock import mocksignature
 from selectors import ModelSelector, ModelFileSelector
 from nodefs.lib.model import Node, AbstractNode
 from fixtures.models import BoxOfThings, Thing
-from management.commands.nodefs_actions import Command
+from management.commands.nodefs_mount import Command
 
 
 class TestModelSelector(TestCase):
@@ -135,4 +135,4 @@ class TestCommand(TestCase):
 
     def test_handle_needs_path_on_args(self):
         command = Command()
-        command.handle('mnt/')
+        command.handle(os.path.dirname(__file__) + '/../mnt')

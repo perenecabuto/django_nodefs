@@ -1,0 +1,126 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<link href="reset.css" rel="stylesheet" type="text/css" />
+<link href="style.css" rel="stylesheet" type="text/css" />
+<script src="jquery.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+            $('.node a').click(function() {
+                $node = $(this).parent('.node');
+
+                if ($node.hasClass('open')) {
+                    $node.removeClass('open').addClass('closed');
+                } else if ($node.hasClass('closed')) {
+                    $node.removeClass('closed').addClass('open');
+                }
+
+            });
+    });
+</script>
+
+<body>
+    <div class="container">
+        <section id="panel">
+        <div class="explain topic">Contas de <strong>janeiro</strong> de <strong>2012</strong></div>
+
+        <nav class="action-items">
+        <ul>
+            <li>
+            <a href="#add-account">Adicionar conta</a>
+            </li>
+
+            <li>
+            <ul class="list-select-order">
+                <li>
+                <a href="#order-by-account-label">Ordem alfabética</a>
+                </li>
+
+                <li>
+                <a href="#order-by-priority">Por prioridade</a>
+                </li>
+            </ul>
+            </li>
+        </ul>
+        </nav>
+
+        <span class="message"></span>
+        </section>
+
+        <section id="accounts">
+        <ul>
+            <li class="account">
+            <strong class="account-name" name="account_label">Aluguel</strong>
+            <input type="button" name="download_account" class="download-account" />
+            <input type="button" name="status_and_action" class="status-and-action"  value="Pago" />
+            </li>
+
+            <li class="account">
+            <strong class="account-name">Celular</strong>
+            <input type="button" name="upload_account" class="upload-account" />
+            <input type="button" name="status_and_action" class="status-and-action" value="Registrar pagamento" />
+            </li>
+
+
+            <li class="account">
+            <strong class="account-name">Luz</strong>
+            <input type="button" name="upload_account" class="upload-account" />
+            <input type="button" name="status_and_action" class="status-and-action" value="Registrar pagamento" />
+            </li>
+        </ul>
+        </section>
+
+        <nav class="nodefs">
+        <h1 class="page-title">contas</h1>
+
+        <ul class="tree">
+            <li class="node open">
+            <a>deste mes</a>
+
+            <ul class="tree">
+                <li class="node open">
+                <a>luz</a>
+
+                <ul class="tree">
+                    <li class="node">
+                    <a href="#">arquivo.pdf</a>
+                    </li>
+                </ul>
+                </li>
+
+                <li class="node closed">
+                <a>Xilophompila do mal 123</a>
+                </li>
+            </ul>
+            </li>
+
+            <li class="node open">
+            <a>do mes passado</a>
+
+            <ul class="tree">
+                <li class="node open">
+                <a>luz</a>
+
+                <ul class="tree">
+                    <li class="node">
+                    <a href="#">arquivo.pdf</a>
+                    </li>
+                </ul>
+                </li>
+
+                <li class="node closed">
+                <a>Xilophompila do mal 123</a>
+                </li>
+            </ul>
+            </li>
+
+            <li class="node closed">
+            <a>do ano passado</a>
+            </li>
+
+            <li class="node closed">
+            <a>de outros anos</a>
+            </li>
+        </ul>
+        </nav>
+    </div>
+</body>
