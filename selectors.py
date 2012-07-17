@@ -32,12 +32,16 @@ class ModelSelector(Selector):
         if not abstract_node:
             abstract_node = base_node.abstract_node
 
+        #if base_node and 'first_things/FirstThingOfBox1' in base_node.path:
+            #import ipdb; ipdb.set_trace()
+
         for node in self.get_selector_nodes(base_node):
             criteria = criteria.filter(**node.abstract_node.selector.get_filter(node.pattern, abstract_node))
 
         criteria.only(*self.parse_imediate_fields()).distinct()
 
-        #print "\n---->", criteria.all().query, "<----\n"
+        if hasattr(criteria, 'get_query_set'):
+            criteria = criteria.get_query_set()
 
         return criteria
 
@@ -48,11 +52,20 @@ class ModelSelector(Selector):
 
         for i in range(len(parsed_fields)):
             if abstract_node.selector.model_class is not self.model_class:
-                fields = abstract_node.selector.model_class._meta.fields
-                f = [f for f in fields if f.rel and f.rel.to == self.model_class]
+                field_names = []
+                meta = abstract_node.selector.model_class._meta
 
-                if len(f) == 1:
-                    parsed_fields[i] = f[0].name + '.' + parsed_fields[i]
+                for fname in meta.get_all_field_names():
+                    field = meta.get_field_by_name(fname)[0]
+
+                    if hasattr(field, 'field') and field.model == self.model_class:
+                        field_names.append(fname)
+
+                    elif hasattr(field, 'rel') and field.rel and field.rel.to == self.model_class:
+                        field_names.append(fname)
+
+                if len(field_names) == 1:
+                    parsed_fields[i] = field_names[0] + '.' + parsed_fields[i]
                 else:
                     raise Exception("more than 1 way to find column")
 
@@ -66,7 +79,7 @@ class ModelSelector(Selector):
         current_node = base_node
 
         while(current_node):
-            if type(current_node.abstract_node.selector) is ModelSelector:
+            if isinstance(current_node.abstract_node.selector, ModelSelector):
                 model_selector_nodes.append(current_node)
 
             current_node = current_node.parent
@@ -191,8 +204,35 @@ class ModelFileSelector(ModelSelector):
         tmp_f.close()
         rm(tmp_f.name)
 
+    def get_filter(self, pattern, abstract_node):
+        """Overriden method to avoid to use this projection as a search pattern"""
+        return {}
+
     def get_object(self, node):
         return self.get_query_set(node).all()[0]
 
     def get_object_file_field(self, node):
         return getattr(self.get_object(node), self.file_field_name)
+
+
+class QuerySetSelector(ModelSelector):
+
+    def __init__(self, projection, query_set, append=True):
+
+        if hasattr(query_set, 'get_query_set'):
+            query_set = query_set.get_query_set()
+
+        self.model_class = query_set.model
+        self.custom_query_set = query_set
+        self.projection = projection
+        self.append_query_set = append
+
+    def get_query_set(self, base_node, abstract_node=None):
+        criteria = super(QuerySetSelector, self).get_query_set(base_node, abstract_node)
+
+        if self.append_query_set:
+            criteria = criteria & self.custom_query_set
+        else:
+            criteria = criteria | self.custom_query_set
+
+        return criteria

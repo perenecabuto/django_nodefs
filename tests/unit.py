@@ -10,7 +10,6 @@ from mock import mocksignature
 from selectors import ModelSelector, ModelFileSelector
 from nodefs.lib.model import Node, AbstractNode
 from fixtures.models import BoxOfThings, Thing
-from management.commands.nodefs_mount import Command
 
 
 class TestModelSelector(TestCase):
@@ -127,12 +126,20 @@ class TestModelFileSelector(TestCase):
         self.assertEqual(node.pattern, new_node.pattern)
 
 
-class TestCommand(TestCase):
+class TestQuerySetSelector(TestCase):
 
-    def test_instance(self):
-        command = Command()
-        self.assertTrue(command)
+    @classmethod
+    def setUpClass(cls):
+        cls.creator = connection.creation
+        cls.creator.create_test_db(2, True)
 
-    def test_handle_needs_path_on_args(self):
-        command = Command()
-        command.handle(os.path.dirname(__file__) + '/../mnt')
+    @classmethod
+    def tearDownClass(cls):
+        cls.creator.destroy_test_db('default')
+
+    def setUp(self):
+        self.thing = Thing.objects.create(
+            label='test_thing',
+            content_file=File(open(__file__)),
+            box=BoxOfThings.objects.create(serial_number='1234')
+        )

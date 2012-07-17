@@ -5,6 +5,7 @@ from django.db import connection
 from nodefs.lib.model import NodeManager
 from nodefs.lib import conf
 from fixtures import nodefs_schema
+from management.commands.nodefs_mount import Command
 
 conf.node_profiles = nodefs_schema.schema
 
@@ -67,6 +68,40 @@ class FunctionalTest(TestCase):
             [n.pattern for n in box2_node.children]
         )
 
+    def test_should_get_filtred_things(self):
+        node = self.node_manager.search_by_path('/pre_filtered_things/first_things')
+
+        self.assertItemsEqual(
+            ('FirstThingOfBox1', 'FirstThingOfBox2'),
+            (n.pattern for n in node.children)
+        )
+
+    def test_should_get_the_box_of_filtered_thing(self):
+        node = self.node_manager.search_by_path('/pre_filtered_things/first_things/FirstThingOfBox1')
+
+        self.assertItemsEqual(['B1-1234567890'], [n.pattern for n in node.children])
+
+    def test_should_get_related_things_by_its_box(self):
+        node = self.node_manager.search_by_path('/pre_filtered_things/first_things/FirstThingOfBox1/B1-1234567890')
+
+        self.assertItemsEqual(
+            ('SecondThingOfBox1', 'ThirdThingOfBox1'),
+            (n.pattern for n in node.children)
+        )
+
     #def test_should_mount_fs(self):
         #"""Mounting fs"""
         #raise NotImplemented()
+
+
+#class TestCommand(TestCase):
+
+    #def test_instance(self):
+        #command = Command()
+        #self.assertTrue(command)
+
+    #def test_handle_needs_path_on_args(self):
+        #import os
+
+        #command = Command()
+        #command.handle(os.path.dirname(__file__) + '/../mnt')

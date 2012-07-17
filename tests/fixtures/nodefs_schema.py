@@ -4,7 +4,7 @@ from nodefs.lib.shortcuts import profile, absnode
 from models import Thing, BoxOfThings
 
 from nodefs.lib.selectors import StaticSelector
-from django_nodefs.selectors import ModelSelector, ModelFileSelector
+from django_nodefs.selectors import ModelSelector, ModelFileSelector, QuerySetSelector
 
 
 schema = {
@@ -29,6 +29,19 @@ schema = {
             ]),
         ]),
 
+        absnode(StaticSelector('pre_filtered_things'), [
+            absnode(StaticSelector('first_things'), [
+                absnode(
+                    QuerySetSelector('%(label)s', query_set=Thing.objects.filter(label__icontains='First')), [
+                        absnode(ModelSelector('%(serial_number)s', model_class=BoxOfThings), [
+                            # TODO pegar as OUTRAS COISAS da CAIXA desta coisa
+                            absnode(QuerySetSelector('%(label)s', query_set=Thing.objects.filter(label__icontains='%%')), [
+                            ]),
+                        ]),
+                    ]
+                ),
+            ])
+        ]),
     ]),
 }
 
