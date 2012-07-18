@@ -33,26 +33,57 @@ class ModelSelector(Selector):
 
         return list(nodes)
 
-    def get_query_set(self, base_node, abstract_node=None):
-        criteria = self.model_class.objects
+    def get_query_set(self, base_node=None, abstract_node=None):
+        criteria = self.model_class.objects.get_query_set()
+
+        print "-" * 100
+        if base_node:
+            print base_node.pattern
+        print "1 - ", criteria.query
 
         if not abstract_node:
             abstract_node = base_node.abstract_node
 
-        for node in self.get_selector_nodes(base_node):
-            criteria = criteria.filter(**node.abstract_node.selector.get_filter(node.pattern, abstract_node))
+        if base_node and isinstance(base_node.abstract_node.selector, ModelSelector):
+            criteria = criteria.filter(**self.get_filter(base_node.pattern, abstract_node))
+            print "2 - ", criteria.query
 
-            if hasattr(criteria, 'get_query_set'):
-                criteria = criteria.get_query_set()
+        model_selector_node = self.get_next_model_selector_node(base_node)
+
+        if model_selector_node:
+            criteria = criteria & model_selector_node.abstract_node.selector.get_query_set(model_selector_node, abstract_node)
+            print "3 - ", criteria.query
+
+        print "-" * 100
+
+        #for node in self.get_selector_nodes(base_node):
+            #criteria = criteria.filter(**node.abstract_node.selector.get_filter(node.pattern, abstract_node))
+
+            #if hasattr(criteria, 'get_query_set'):
+                #criteria = criteria.get_query_set()
 
             #print "ON MODEL ", type(self), " ", criteria.query
 
         #criteria = criteria.only(*self.parse_imediate_fields()).distinct()
 
-        if hasattr(criteria, 'get_query_set'):
-            criteria = criteria.get_query_set()
+        #if hasattr(criteria, 'get_query_set'):
+            #criteria = criteria.get_query_set()
 
-        return criteria
+        return criteria.only(*self.parse_imediate_fields())
+
+    def get_next_model_selector_node(self, base_node):
+        if not base_node:
+            return
+
+        node = base_node.parent
+
+        while node and not isinstance(node.abstract_node.selector, ModelSelector):
+            node = node.parent
+
+            if not node:
+                return
+
+        return node
 
     def get_filter(self, pattern, abstract_node):
         filter_query = {}
@@ -263,7 +294,7 @@ class QuerySetSelector(ModelSelector):
 
         return criteria
 
-    def get_filter(self, pattern, abstract_node):
-        _filter = super(QuerySetSelector, self).get_filter(pattern, abstract_node)
+    #def get_filter(self, pattern, abstract_node):
+        #dict_filter = super(QuerySetSelector, self).get_filter(pattern, abstract_node)
 
-        return _filter
+        #return dict_filter
