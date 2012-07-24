@@ -7,6 +7,9 @@ from nodefs.lib import conf
 from fixtures import nodefs_schema
 from management.commands.nodefs_mount import Command
 
+import shutil
+import os
+
 conf.node_profiles = nodefs_schema.schema
 
 
@@ -21,14 +24,23 @@ class FunctionalTest(TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        try:
+            shutil.rmtree(os.path.join(os.path.dirname(__file__), '..', 'static'))
+        except OSError:
+            pass
+
         cls.creator.destroy_test_db('default')
+
+    def test_should_list_root(self):
+        node = self.node_manager.search_by_path('/')
+        self.assertGreater(len(node.children), 0)
 
     def test_should_list_things(self):
         node = self.node_manager.search_by_path('/simple_things')
         self.assertGreater(len(node.children), 0)
         self.assertItemsEqual(
             [
-                'FirstThingOfBox1', 'SecondThingOfBox1', 'ThirdThingOfBox1', 'LostThingOfBox1',
+                'FirstThingOfBox1', 'SecondThingOfBox1', 'ThirdThingOfBox1', 'RepeatedThingLabel',
                 'FirstThingOfBox2', 'SecondThingOfBox2', 'ThirdThingOfBox2'
             ],
             [n.pattern for n in node.children]
@@ -54,17 +66,17 @@ class FunctionalTest(TestCase):
         self.assertEqual('B1-1234567890', node.children[0].pattern)
         self.assertEqual('B2-1234567890', node.children[1].pattern)
 
-    def test_should_get_things_into_boxes(self):
+    def test_should_get_things_in_boxes(self):
         box1_node = self.node_manager.search_by_path('/boxes_of_things/B1-1234567890')
         box2_node = self.node_manager.search_by_path('/boxes_of_things/B2-1234567890')
 
         self.assertItemsEqual(
-            ['FirstThingOfBox1', 'SecondThingOfBox1', 'ThirdThingOfBox1', 'LostThingOfBox1'],
+            ['FirstThingOfBox1', 'SecondThingOfBox1', 'ThirdThingOfBox1', 'RepeatedThingLabel'],
             [n.pattern for n in box1_node.children]
         )
 
         self.assertItemsEqual(
-            ['FirstThingOfBox2', 'SecondThingOfBox2', 'ThirdThingOfBox2'],
+            ['FirstThingOfBox2', 'SecondThingOfBox2', 'ThirdThingOfBox2', 'RepeatedThingLabel'],
             [n.pattern for n in box2_node.children]
         )
 
@@ -79,10 +91,40 @@ class FunctionalTest(TestCase):
     def test_should_get_the_box_of_filtered_thing(self):
         node = self.node_manager.search_by_path('/pre_filtered_things/first_things/FirstThingOfBox1')
 
-        self.assertItemsEqual(['B1-1234567890'], [n.pattern for n in node.children])
+        self.assertIn('_B1-1234567890', [n.pattern for n in node.children])
+
+        node = self.node_manager.search_by_path('/pre_filtered_things/first_things/FirstThingOfBox1/_B1-1234567890')
+        self.assertTrue(not node.is_leaf)
+
+    def test_should_get_the_file_of_filtered_thing_of_box1(self):
+        node = self.node_manager.search_by_path('/pre_filtered_things/first_things/FirstThingOfBox1')
+        file_name = os.path.basename(__file__)
+
+        self.assertIn('passwd', [n.pattern for n in node.children])
+
+        node.create_child_by_pattern(file_name)
+
+        self.assertIn(file_name, [n.pattern for n in node.children])
+
+    def test_should_get_the_file_of_filtered_thing_of_box2(self):
+        node = self.node_manager.search_by_path('/pre_filtered_things/first_things/FirstThingOfBox2')
+        file_name = os.path.basename(__file__)
+
+        self.assertIn('passwd', [n.pattern for n in node.children])
+
+        node.create_child_by_pattern(file_name)
+
+        self.assertIn(file_name, [n.pattern for n in node.children])
+
+    def test_should_get_contents_of_file_from_filtered_thing_of_box_1(self):
+        node = self.node_manager.search_by_path('/pre_filtered_things/repeated_things/RepeatedThingLabel')
+        self.assertIn('passwd', [n.pattern for n in node.children])
+
+        node = self.node_manager.search_by_path('/pre_filtered_things/repeated_things/RepeatedThingLabel/passwd')
+        self.assertTrue(node)
 
     def test_should_get_related_things_by_its_box(self):
-        node = self.node_manager.search_by_path('/pre_filtered_things/first_things/FirstThingOfBox1/B1-1234567890')
+        node = self.node_manager.search_by_path('/pre_filtered_things/first_things/FirstThingOfBox1/_B1-1234567890')
 
         self.assertItemsEqual(
             ('SecondThingOfBox1', 'ThirdThingOfBox1'),

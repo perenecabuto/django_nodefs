@@ -33,15 +33,24 @@ schema = {
             absnode(StaticSelector('first_things'), [
                 absnode(
                     QuerySetSelector('%(label)s', query_set=Thing.objects.filter(label__icontains='First')), [
-                        absnode(ModelSelector('%(serial_number)s', model_class=BoxOfThings), [
-                            # TODO pegar as OUTRAS COISAS da CAIXA desta coisa
-                            absnode(QuerySetSelector('%(label)s', query_set=Thing.objects.filter(label__icontains='%%')), [
+                        absnode(ModelFileSelector(projection='%(content_file)s', file_field_name='content_file', model_class=Thing), writable=True),
+
+                        absnode(ModelSelector('_%(serial_number)s', model_class=BoxOfThings), [
+                            absnode(QuerySetSelector('%(label)s', query_set=Thing.objects.exclude(box__thing__label__icontains='First'), append=False), [
                             ]),
                         ]),
                     ]
                 ),
-            ])
-        ]),
+            ]),
+
+            absnode(StaticSelector('repeated_things'), [
+                absnode(
+                    QuerySetSelector('%(label)s', query_set=Thing.objects.filter(label__icontains='RepeatedThingLabel')), [
+                        absnode(ModelFileSelector(projection='%(content_file)s', file_field_name='content_file', model_class=Thing), writable=True),
+                    ]
+                )
+            ]),
+        ])
     ]),
 }
 

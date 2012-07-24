@@ -1,72 +1,66 @@
 # -*- coding: utf-8 -*-
 
-from nodefs.lib.selectors import Selector, weights
+from nodefs.lib.selectors import Selector
 from nodefs.lib.model import Node
 from django.core.files import File
 from django.utils.encoding import smart_unicode
-from django.db.models.fields.files import FieldFile
 import re
 import os
 
 
 class ModelSelector(Selector):
-    weight = weights.HEAVY
 
     def __init__(self, projection, model_class):
         self.model_class = model_class
         self.projection = projection
 
-    def get_nodes(self, child_abstract_node, base_node=None):
+    def get_nodes(self, abstract_node, base_node=None):
         nodes = set()
-        query_set = self.get_query_set(base_node)
+
+        #print "\n\nINICIO", "-" * 100
+        #import ipdb; ipdb.set_trace()
+        query_set = self.get_query_set(base_node, abstract_node)
+        #print "FINAL ", query_set.query
+        #print "---" * 20, "\n\n"
 
         for obj in query_set.all():
             projection = self.parse_projection(obj)
             nodes.add(Node(
-                abstract_node=child_abstract_node,
+                abstract_node=abstract_node,
                 parent=base_node,
                 pattern=projection,
             ))
 
         return list(nodes)
 
-    def get_query_set(self, base_node=None, query_set=None):
-        """
-            Deve retornar um query set baseado no model_class deste selector
-            e filtrado pelos parametros de base_node (recursivamente, considerando os selectors ModelSelecor)
-        """
-        if not query_set:
-            query_set = self.model_class.objects.get_query_set()
+    def get_query_set(self, base_node, abstract_node=None):
+        criteria = self.model_class.objects
 
-        next_node = self.get_next_model_selector_node(base_node)
+        if not abstract_node:
+            abstract_node = base_node.abstract_node
 
-        if next_node:
-            query_set = query_set.filter(**next_node.abstract_node.selector.get_filter(next_node.pattern, query_set))
+        for node in self.get_selector_nodes(base_node):
+            criteria = criteria.filter(**node.abstract_node.selector.get_filter(node.pattern, abstract_node))
 
-        # Chegou um base node 2012 que deve retornar um filtro {year = 2012}
+            if hasattr(criteria, 'get_query_set'):
+                criteria = criteria.get_query_set()
 
-        return query_set.only(*self.parse_imediate_fields())
+        #criteria = criteria.only(*self.parse_imediate_fields()).distinct()
 
-    def get_next_model_selector_node(self, base_node):
-        if not base_node:
-            return
+        if hasattr(criteria, 'get_query_set'):
+            criteria = criteria.get_query_set()
 
-        node = base_node
+        return criteria
 
-        while node and not isinstance(node.abstract_node.selector, ModelSelector):
-            node = node.parent
-
-        return node
-
-    def get_filter(self, pattern, query_set):
+    def get_filter(self, pattern, abstract_node):
         filter_query = {}
         parsed_fields = self.parse_fields()
         parsed_values = self.parse_pattern_values(pattern)
 
         for i in range(len(parsed_fields)):
-            if query_set.model is not self.model_class:
+            if abstract_node.selector.model_class is not self.model_class:
                 field_names = []
-                meta = query_set.model._meta
+                meta = abstract_node.selector.model_class._meta
 
                 for fname in meta.get_all_field_names():
                     field = meta.get_field_by_name(fname)[0]
@@ -128,8 +122,7 @@ class ModelSelector(Selector):
         return []
 
     def parse_imediate_fields(self):
-        field_names = self.get_model_field_names()
-        return [f.split(".")[0] for f in self.parse_fields() if f in field_names]
+        return [f.split(".")[0] for f in self.parse_fields()]
 
     def parse_fields(self):
         return re.findall("%\((.*?)\)", self.projection)
@@ -150,15 +143,13 @@ class ModelSelector(Selector):
             else:
                 binds[f] = attr
 
-            if isinstance(binds[f], FieldFile):
-                binds[f] = os.path.basename(binds[f].name)
+            if hasattr(binds[f], 'file'):
+                binds[f] = os.path.basename(binds[f].file.name)
 
         return re.sub(os.sep, "-", smart_unicode(self.projection % binds))
 
 
 class ModelFileSelector(ModelSelector):
-    weight = weights.EXTRA_HEAVY
-
     """
     Mostra o arquivo do nó selecionado.
     Este arquivo será o único filho gerado por este seletor.
@@ -179,8 +170,8 @@ class ModelFileSelector(ModelSelector):
         self.model_class = model_class
         self.file_field_name = file_field_name
 
-    def get_nodes(self, child_abstract_node, base_node=None):
-        nodes = super(ModelFileSelector, self).get_nodes(child_abstract_node, base_node)
+    def get_nodes(self, abstract_node, base_node=None):
+        nodes = super(ModelFileSelector, self).get_nodes(abstract_node, base_node)
 
         if len(nodes) > 1:
             raise Exception('ModelFileSelector.get_nodes should not return more than 1 node')
@@ -208,7 +199,7 @@ class ModelFileSelector(ModelSelector):
 
     def node_contents_length(self, node):
         try:
-            return len(self.get_object_file_name(node))
+            return len(self.get_object_file_field(node))
         except:
             return 0
 
@@ -216,7 +207,7 @@ class ModelFileSelector(ModelSelector):
         from tempfile import mkstemp
         from os import remove as rm
 
-        obj = self.get_object(node.parent)
+        obj = self.get_object(node)
         tmp_f = open(mkstemp()[1])
         f = File(tmp_f)
         f.name = node.pattern
@@ -224,17 +215,7 @@ class ModelFileSelector(ModelSelector):
         old_file = getattr(obj, self.file_field_name)
 
         if old_file:
-            try:
-                rm(old_file.name)
-            except OSError:
-                import logging
-
-                logging.warning("%(class)s:%(pattern)s on %(method)s: could not remove file %(file_name)s" % {
-                    'pattern': node.pattern,
-                    'class': type(self).__module__ + "." + type(self).__name__,
-                    'method': 'add_node',
-                    'file_name': old_file.name,
-                })
+            rm(old_file.name)
 
         setattr(obj, self.file_field_name, f)
         obj.save()
@@ -252,9 +233,6 @@ class ModelFileSelector(ModelSelector):
     def get_object_file_field(self, node):
         return getattr(self.get_object(node), self.file_field_name)
 
-    def get_object_file_name(self, node):
-        return os.path.basename(self.get_object_file_field(node).name)
-
 
 class QuerySetSelector(ModelSelector):
 
@@ -268,12 +246,22 @@ class QuerySetSelector(ModelSelector):
         self.projection = projection
         self.append_query_set = append
 
-    def get_query_set(self, base_node, query_set=None):
-        query_set = super(QuerySetSelector, self).get_query_set(base_node, query_set)
+    def get_query_set(self, base_node, abstract_node=None):
+        criteria = super(QuerySetSelector, self).get_query_set(base_node, abstract_node)
+
+        #print "QS B", criteria.query
+        #print "QS C", self.custom_query_set.query
 
         if self.append_query_set:
-            query_set = query_set & self.custom_query_set
+            criteria = criteria & self.custom_query_set
         else:
-            query_set = query_set | self.custom_query_set
+            criteria = criteria | self.custom_query_set
 
-        return query_set
+        #print "QS A", criteria.query
+
+        return criteria
+
+    def get_filter(self, pattern, abstract_node):
+        _filter = super(QuerySetSelector, self).get_filter(pattern, abstract_node)
+
+        return _filter
