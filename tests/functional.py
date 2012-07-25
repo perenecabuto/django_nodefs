@@ -117,10 +117,10 @@ class FunctionalTest(TestCase):
         self.assertIn(file_name, [n.pattern for n in node.children])
 
     def test_should_get_contents_of_file_from_filtered_thing_of_box_1(self):
-        node = self.node_manager.search_by_path('/pre_filtered_things/repeated_things/RepeatedThingLabel')
+        node = self.node_manager.search_by_path('/pre_filtered_things/repeated_things/box_1/RepeatedThingLabel')
         self.assertIn('passwd', [n.pattern for n in node.children])
 
-        node = self.node_manager.search_by_path('/pre_filtered_things/repeated_things/RepeatedThingLabel/passwd')
+        node = self.node_manager.search_by_path('/pre_filtered_things/repeated_things/box_1/RepeatedThingLabel/passwd')
         self.assertTrue(node)
 
     def test_should_get_related_things_by_its_box(self):

@@ -44,11 +44,11 @@ schema = {
             ]),
 
             absnode(StaticSelector('repeated_things'), [
-                absnode(
-                    QuerySetSelector('%(label)s', query_set=Thing.objects.filter(label__icontains='RepeatedThingLabel')), [
+                absnode(StaticSelector('box_1'), [
+                    absnode(QuerySetSelector('%(label)s', query_set=Thing.objects.filter(label__icontains='RepeatedThingLabel', box__serial_number__icontains='B1')), [
                         absnode(ModelFileSelector(projection='%(content_file)s', file_field_name='content_file', model_class=Thing), writable=True),
-                    ]
-                )
+                    ])
+                ])
             ]),
         ])
     ]),

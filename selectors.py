@@ -33,17 +33,19 @@ class ModelSelector(Selector):
     def get_query_set(self, base_node=None, query_set=None):
         """
             Deve retornar um query set baseado no model_class deste selector
-            e filtrado pelos parametros de base_node (recursivamente, considerando os selectors ModelSelecor)
+            e filtrado pelos parametros de base_node (recursivamente, considerando os selectors ModelSelector)
         """
         if not query_set:
             query_set = self.model_class.objects.get_query_set()
 
-        next_node = self.get_next_model_selector_node(base_node)
+        base_node_selector = base_node.abstract_node.selector
 
-        if next_node:
-            query_set = query_set.filter(**next_node.abstract_node.selector.get_filter(next_node.pattern, query_set))
+        if base_node.abstract_node.selector is self:
+            query_set = query_set.filter(**base_node_selector.get_filter(base_node.pattern, query_set))
+            base_node = self.get_next_model_selector_node(base_node)
 
-        # Chegou um base node 2012 que deve retornar um filtro {year = 2012}
+        if base_node and isinstance(base_node.abstract_node.selector, ModelSelector):
+            query_set = base_node_selector.get_query_set(base_node, query_set)
 
         return query_set.only(*self.parse_imediate_fields())
 
@@ -51,7 +53,7 @@ class ModelSelector(Selector):
         if not base_node:
             return
 
-        node = base_node
+        node = base_node.parent
 
         while node and not isinstance(node.abstract_node.selector, ModelSelector):
             node = node.parent
@@ -66,16 +68,10 @@ class ModelSelector(Selector):
         for i in range(len(parsed_fields)):
             if query_set.model is not self.model_class:
                 field_names = []
-                meta = query_set.model._meta
+                fname = self.get_query_set_field_name_for_model(query_set, self.model_class)
 
-                for fname in meta.get_all_field_names():
-                    field = meta.get_field_by_name(fname)[0]
-
-                    if hasattr(field, 'field') and field.model == self.model_class:
-                        field_names.append(fname)
-
-                    elif hasattr(field, 'rel') and field.rel and field.rel.to == self.model_class:
-                        field_names.append(fname)
+                if fname:
+                    field_names.append(fname)
 
                 if len(field_names) == 1:
                     parsed_fields[i] = field_names[0] + '.' + parsed_fields[i]
@@ -89,6 +85,18 @@ class ModelSelector(Selector):
             filter_query[field_filter] = parsed_values[i]
 
         return filter_query
+
+    def get_query_set_field_name_for_model(self, query_set, model):
+        meta = query_set.model._meta
+
+        for fname in meta.get_all_field_names():
+            field = meta.get_field_by_name(fname)[0]
+
+            if hasattr(field, 'model') and field.model == model:
+                return fname
+
+            elif hasattr(field, 'rel') and field.rel and field.rel.to == model:
+                return fname
 
     def get_model_field_names(self):
         return self.model_class._meta.get_all_field_names()
@@ -270,10 +278,16 @@ class QuerySetSelector(ModelSelector):
 
     def get_query_set(self, base_node, query_set=None):
         query_set = super(QuerySetSelector, self).get_query_set(base_node, query_set)
+        custom_query_set = self.custom_query_set
+
+        if query_set.model is not custom_query_set.model:
+            params = {}
+            params[self.get_query_set_field_name_for_model(query_set, custom_query_set.model)] = custom_query_set
+            custom_query_set = query_set.filter(**params)
 
         if self.append_query_set:
-            query_set = query_set & self.custom_query_set
+            query_set = query_set & custom_query_set
         else:
-            query_set = query_set | self.custom_query_set
+            query_set = query_set | custom_query_set
 
         return query_set
