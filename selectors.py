@@ -65,6 +65,11 @@ class ModelSelector(Selector):
         parsed_values = self.parse_pattern_values(pattern)
 
         for i in range(len(parsed_fields)):
+            if parsed_fields[i].split('.')[0] not in self.get_model_field_names():
+                del parsed_fields[i]
+                del parsed_values[i]
+                continue
+
             if query_set.model is not self.model_class:
                 field_names = []
                 fname = self.get_query_set_field_name_for_model(query_set, self.model_class)
@@ -76,9 +81,6 @@ class ModelSelector(Selector):
                     parsed_fields[i] = field_names[0] + '.' + parsed_fields[i]
                 else:
                     raise Exception("more than 1 way to find column")
-
-            elif parsed_fields[i].split('.')[0] not in self.get_model_field_names():
-                continue
 
             field_filter = parsed_fields[i].replace(".", "__")
             filter_query[field_filter] = parsed_values[i]
@@ -116,21 +118,21 @@ class ModelSelector(Selector):
         return bool(self.parse_pattern_values(pattern))
 
     def parse_pattern_values(self, pattern):
-        parsed_pattern = re.sub(r"%\([^)]+\)(.)", r"#TYPE#\1#TYPE#", self.projection)
-        pattern_types = re.findall(r'#TYPE#(.+?)#TYPE#', parsed_pattern)
+        parsed_projection = re.sub(r"\\%\\\([^)]+\\\)(.)", r"#TYPE#\1#TYPE#", re.escape(self.projection))
+        pattern_types = re.findall(r'#TYPE#(.+?)#TYPE#', parsed_projection)
 
         type_matchers = {
-            's': r'.+',
-            'd': r'\d+',
-            'f': r'[\d.]+',
+            's': r'.+?',
+            'd': r'\d+?',
+            'f': r'[\d.]+?',
         }
 
-        pattern_str = re.sub(r"#TYPE#\w#TYPE#", r"(%s)", parsed_pattern)
-        pattern_re = pattern_str % tuple(type_matchers[t] for t in pattern_types)
+        pattern_str = re.sub(r"#TYPE#\w#TYPE#", r"(%s)", parsed_projection)
+        pattern_re = (pattern_str % tuple(type_matchers[t] for t in pattern_types)) + '$'
         pattern_values = re.match(pattern_re, pattern)
 
         if pattern_values:
-            return pattern_values.groups()
+            return list(pattern_values.groups())
 
         return []
 
@@ -204,7 +206,9 @@ class ModelFileSelector(ModelSelector):
         return nodes
 
     def read_node_contents(self, node, size=-1, offset=0):
-        return self.get_object_file_field(node).read()
+        file_from_field = self.get_object_file_field(node).file
+        file_from_field.seek(offset)
+        return file_from_field.read(size)
 
     def write_node_contents(self, node, data, reset=False):
         mode = reset and 'w' or 'a'
@@ -215,7 +219,7 @@ class ModelFileSelector(ModelSelector):
 
     def node_contents_length(self, node):
         try:
-            return len(self.get_object_file_name(node))
+            return len(self.get_object_file_field(node))
         except:
             return 0
 
@@ -223,7 +227,7 @@ class ModelFileSelector(ModelSelector):
         from tempfile import mkstemp
         from os import remove as rm
 
-        obj = self.get_object(node.parent)
+        obj = self.get_object(self.get_next_model_selector_node(node))
         tmp_f = open(mkstemp()[1])
         f = File(tmp_f)
         f.name = node.pattern
@@ -232,8 +236,8 @@ class ModelFileSelector(ModelSelector):
 
         if old_file:
             try:
-                rm(old_file.name)
-            except OSError:
+                rm(old_file.file.name)
+            except:
                 import logging
 
                 logging.warning("%(class)s:%(pattern)s on %(method)s: could not remove file %(file_name)s" % {
@@ -254,7 +258,7 @@ class ModelFileSelector(ModelSelector):
         return {}
 
     def get_object(self, node):
-        return self.get_query_set(node).all()[0]
+        return self.get_query_set(node)[0]
 
     def get_object_file_field(self, node):
         return getattr(self.get_object(node), self.file_field_name)
