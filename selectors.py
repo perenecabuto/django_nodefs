@@ -38,12 +38,13 @@ class ModelSelector(Selector):
         if not query_set:
             query_set = self.model_class.objects.get_query_set()
 
-        if base_node.abstract_node.selector is self:
-            query_set = query_set.filter(**self.get_filter(base_node.pattern, query_set))
-            base_node = self.get_next_model_selector_node(base_node)
+        if base_node:
+            if base_node.abstract_node.selector is self:
+                query_set = query_set.filter(**self.get_filter(base_node.pattern, query_set))
+                base_node = self.get_next_model_selector_node(base_node)
 
-        if base_node and isinstance(base_node.abstract_node.selector, ModelSelector):
-            query_set = base_node.abstract_node.selector.get_query_set(base_node, query_set)
+            if base_node and isinstance(base_node.abstract_node.selector, ModelSelector):
+                query_set = base_node.abstract_node.selector.get_query_set(base_node, query_set)
 
         return query_set.only(*self.parse_imediate_fields())
 
