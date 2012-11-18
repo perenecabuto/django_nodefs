@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import re
+import os
+
 from nodefs.lib.selectors import Selector, weights
 from nodefs.lib.model import Node
+
 from django.core.files import File
 from django.utils.encoding import smart_unicode
 from django.db.models.fields.files import FieldFile
-import re
-import os
 
 
 class ModelSelector(Selector):
@@ -29,6 +31,9 @@ class ModelSelector(Selector):
             ))
 
         return list(nodes)
+
+    def get_object(self, node):
+        return self.get_query_set(node)[0]
 
     def get_query_set(self, base_node=None, query_set=None):
         """
@@ -247,6 +252,11 @@ class ModelFileSelector(ModelSelector):
                     'file_name': old_file.name,
                 })
 
+        # Workaround do not remove white spaces from file names
+        import django.utils.text
+        django.utils.text.get_valid_filename = lambda s: s
+        # End Workaround
+
         setattr(obj, self.file_field_name, f)
         obj.save()
 
@@ -256,9 +266,6 @@ class ModelFileSelector(ModelSelector):
     def get_filter(self, pattern, abstract_node):
         """Overriden method to avoid to use this projection as a search pattern"""
         return {}
-
-    def get_object(self, node):
-        return self.get_query_set(node)[0]
 
     def get_object_file_field(self, node):
         return getattr(self.get_object(node), self.file_field_name)

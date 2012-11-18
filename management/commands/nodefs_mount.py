@@ -9,13 +9,12 @@ from django.core.management.base import BaseCommand
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        path = args[0]
 
-        if not path:
+        if len(args) < 1:
             print """
-            Usage: manage.py nodefs <action> <mount point path>
-            Available actions:
+            Usage: manage.py nodefs_mount <mount point path>
             """
             sys.exit(0)
 
+        path = args[0]
         mounter.mount(path)
