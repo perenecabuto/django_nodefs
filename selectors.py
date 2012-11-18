@@ -120,7 +120,7 @@ class ModelSelector(Selector):
         return model_selector_nodes
 
     def matches_node_pattern(self, parent_node, pattern):
-        return bool(self.parse_pattern_values(pattern))
+        return bool(self.parse_pattern_values(pattern)) or pattern == self.projection
 
     def parse_pattern_values(self, pattern):
         parsed_projection = re.sub(r"\\%\\\([^)]+\\\)(.)", r"#TYPE#\1#TYPE#", re.escape(self.projection))
