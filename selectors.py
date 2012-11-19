@@ -23,11 +23,11 @@ class ModelSelector(Selector):
         query_set = self.get_query_set(base_node)
 
         for obj in query_set.all():
-            projection = self.parse_projection(obj)
+            pattern = self.parse_projection(obj)
             nodes.add(Node(
                 abstract_node=child_abstract_node,
                 parent=base_node,
-                pattern=projection,
+                pattern=pattern,
             ))
 
         return list(nodes)
@@ -286,7 +286,7 @@ class QuerySetSelector(ModelSelector):
         self.projection = projection
         self.append_query_set = append
 
-    def get_query_set(self, base_node, query_set=None):
+    def get_query_set(self, base_node=None, query_set=None):
         query_set = super(QuerySetSelector, self).get_query_set(base_node, query_set)
         custom_query_set = self.custom_query_set
 
