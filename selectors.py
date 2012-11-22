@@ -51,7 +51,7 @@ class ModelSelector(Selector):
             if base_node and isinstance(base_node.abstract_node.selector, ModelSelector):
                 query_set = base_node.abstract_node.selector.get_query_set(base_node, query_set)
 
-        return query_set.only(*self.parse_imediate_fields())
+        return query_set
 
     def get_next_model_selector_node(self, base_node):
         if not base_node:
@@ -286,12 +286,15 @@ class QuerySetSelector(ModelSelector):
         self.append_query_set = append
 
     def get_query_set(self, base_node=None, query_set=None):
+        if not hasattr(self, 'COUNT'):
+            self.COUNT = 0
+
         query_set = super(QuerySetSelector, self).get_query_set(base_node, query_set)
         custom_query_set = self.custom_query_set
 
         if query_set.model is not custom_query_set.model:
             params = {}
-            params[self.get_query_set_field_name_for_model(query_set, custom_query_set.model)] = custom_query_set
+            params["%s__in" % self.get_query_set_field_name_for_model(query_set, custom_query_set.model)] = custom_query_set
             custom_query_set = query_set.filter(**params)
 
         if self.append_query_set:
