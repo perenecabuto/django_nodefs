@@ -68,11 +68,10 @@ class ModelSelector(Selector):
         filter_query = {}
         parsed_fields = self.parse_fields()
         parsed_values = self.parse_pattern_values(pattern)
+        model_field_names = self.get_model_field_names()
 
         for i in range(len(parsed_fields)):
-            if parsed_fields[i].split('.')[0] not in self.get_model_field_names():
-                del parsed_fields[i]
-                del parsed_values[i]
+            if parsed_fields[i].split('.')[0] not in model_field_names:
                 continue
 
             if query_set.model is not self.model_class:
