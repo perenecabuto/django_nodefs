@@ -20,7 +20,16 @@ class ModelSelector(Selector):
 
     def get_nodes(self, child_abstract_node, base_node=None):
         nodes = set()
+
+        print
+        print "Get Nodes"
+        print "=" * 100
+
+        if base_node:
+            print base_node.path
+
         query_set = self.get_query_set(base_node)
+        print self.model_class, query_set.model
 
         for obj in query_set.all():
             pattern = self.parse_projection(obj)
@@ -30,9 +39,11 @@ class ModelSelector(Selector):
                 pattern=pattern,
             ))
 
+        print "*" * 100
         return list(nodes)
 
     def get_object(self, node):
+        print "| Get Object|", node
         return self.get_query_set(node)[0]
 
     def get_query_set(self, base_node=None, query_set=None):
@@ -43,19 +54,27 @@ class ModelSelector(Selector):
         if not query_set:
             query_set = self.model_class.objects.get_query_set()
 
-        if base_node:
+        print "-" * 100
+        print query_set.model
+
+        if base_node and isinstance(base_node.abstract_node.selector, ModelSelector):
             if base_node.abstract_node.selector is self:
+                print "* Filter: ", self.get_filter(base_node.pattern, query_set)
+
                 query_set = query_set.filter(**self.get_filter(base_node.pattern, query_set))
                 base_node = self.get_next_model_selector_node(base_node)
 
-            if base_node and isinstance(base_node.abstract_node.selector, ModelSelector):
+            if base_node and self.model_class == query_set.model:
+                print "? ", base_node.path, base_node.abstract_node.selector.model_class, query_set.model
+                print
+
                 query_set = base_node.abstract_node.selector.get_query_set(base_node, query_set)
 
         return query_set
 
     def get_next_model_selector_node(self, base_node):
         if not base_node:
-            return
+            return None
 
         node = base_node.parent
 
@@ -81,10 +100,13 @@ class ModelSelector(Selector):
                 if fname:
                     field_names.append(fname)
 
-                if len(field_names) == 1:
-                    parsed_fields[i] = field_names[0] + '.' + parsed_fields[i]
-                else:
+                if len(field_names) == 0:
+                    raise Exception("no column association found")
+
+                if len(field_names) != 1:
                     raise Exception("more than 1 way to find column")
+
+                parsed_fields[i] = field_names[0] + '.' + parsed_fields[i]
 
             field_filter = parsed_fields[i].replace(".", "__")
             filter_query[field_filter] = parsed_values[i]
