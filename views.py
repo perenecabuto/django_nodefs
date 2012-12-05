@@ -13,7 +13,7 @@ from contas.controle.models import Conta, Controle
 
 
 def tree_widget(request):
-    return render_to_response('controle/tree_widget.html', {
+    return render_to_response('django_nodefs/tree_widget.html', {
         'tree': tree(request)
     }, RequestContext(request))
 
