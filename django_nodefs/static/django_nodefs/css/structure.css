@@ -1,0 +1,64 @@
+/* Tree */
+.nodefs {
+    position: absolute;
+    margin: auto auto;
+    height: 90%;
+    width: 90%;
+    overflow: auto;
+}
+
+.nodefs .tree {
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+.nodefs .tree .node.selected > .label {
+    font-weight: bold;
+}
+
+.nodefs .tree .node.selected > .label a {
+    text-decoration: none;
+    cursor: default;
+}
+
+.nodefs .tree .node {
+    margin-bottom: 5px;
+    padding-left: 10px;
+    cursor: pointer;
+
+   -moz-user-select: none;
+   -webkit-user-select: none;
+   user-select: none;
+}
+
+.nodefs .tree .node a {
+    padding-right: 15px;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    -khtml-user-select: none;
+    user-select: none;
+}
+
+.nodefs .tree .tree {
+    border-left: 1px dashed #444;
+}
+
+.nodefs .tree .node .toggler {
+    background-repeat: no-repeat;
+    background-position-x: right;
+    padding-left: 15px;
+}
+
+.nodefs .tree .node.open .toggler {
+    background-image: url(../img/open_arrow.png);
+}
+
+.nodefs .tree .node.closed .toggler {
+    background-image: url(../img/closed_arrow.png);
+    background-position-y: 2px;
+}
+
+.nodefs .tree .node.closed > .tree {
+    display: none;
+}
