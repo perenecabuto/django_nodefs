@@ -32,7 +32,7 @@
 }
 
 .nodefs .tree .node a {
-    padding-right: 15px;
+    padding-right: 2px;
     -moz-user-select: none;
     -webkit-user-select: none;
     -o-user-select: none;
