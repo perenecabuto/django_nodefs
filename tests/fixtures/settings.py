@@ -10,6 +10,6 @@ DATABASES = {
 }
 
 INSTALLED_APPS = [
-    'django_nodefs.tests.fixtures',
+    'tests.fixtures',
     'django_nodefs',
 ]

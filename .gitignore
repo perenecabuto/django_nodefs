@@ -6,3 +6,5 @@ log/*
 build
 pip-log.txt
 *.sqlite3
+dist/
+*.egg-info/

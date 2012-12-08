@@ -48,12 +48,13 @@ def build_tree(node, current_url=None):
 
         # Abs
         from contas.controle.models import Conta, Controle
-        obj = nodeselector.get_object(node)
 
-        if issubclass(nodeselector.model_class, Controle):
+        if 'este_ano' in node.path and issubclass(nodeselector.model_class, Controle):
+            obj = nodeselector.get_object(node)
             url = reverse('controle.views.editar', kwargs={'mes': obj.mes, 'ano': obj.ano})
 
         elif issubclass(nodeselector.model_class, Conta) and isinstance(nodeselector, ModelFileSelector):
+            obj = nodeselector.get_object(node)
             url = obj.arquivo.url
         # EndAbs
 
@@ -65,6 +66,9 @@ def build_tree(node, current_url=None):
 
     for cnode in node.children:
         tree['children'].append(build_tree(cnode, current_url))
+
+    if len(tree['children']) == 0:
+        del tree['children']
 
     return tree
 

@@ -4,8 +4,8 @@ from django.test import TestCase
 from django.db import connection
 from nodefs.lib.model import NodeManager
 from nodefs.lib import conf
-from fixtures import nodefs_schema
-from management.commands.nodefs_mount import Command
+from .fixtures import nodefs_schema
+#from management.commands.nodefs_mount import Command
 
 import shutil
 import os

@@ -7,8 +7,10 @@ from django.test import TestCase
 from django.db import connection
 from django.core.files import File
 from mock import mocksignature
-from selectors import ModelSelector, ModelFileSelector
+
 from nodefs.lib.model import Node, AbstractNode
+from django_nodefs.selectors import ModelSelector, ModelFileSelector
+
 from fixtures.models import BoxOfThings, Thing
 
 

@@ -21,15 +21,15 @@ class ModelSelector(Selector):
     def get_nodes(self, child_abstract_node, base_node=None):
         nodes = set()
 
-        print
-        print "Get Nodes"
-        print "=" * 100
+        #print
+        #print "Get Nodes"
+        #print "=" * 100
 
-        if base_node:
-            print base_node.path
+        #if base_node:
+            #print base_node.path
 
         query_set = self.get_query_set(base_node)
-        print self.model_class, query_set.model
+        #print self.model_class, query_set.model
 
         for obj in query_set.all():
             pattern = self.parse_projection(obj)
@@ -39,11 +39,10 @@ class ModelSelector(Selector):
                 pattern=pattern,
             ))
 
-        print "*" * 100
         return list(nodes)
 
     def get_object(self, node):
-        print "| Get Object|", node
+        #print "| Get Object|", node
         return self.get_query_set(node)[0]
 
     def get_query_set(self, base_node=None, query_set=None):
@@ -54,19 +53,23 @@ class ModelSelector(Selector):
         if not query_set:
             query_set = self.model_class.objects.get_query_set()
 
-        print "-" * 100
-        print query_set.model
+        #print "-" * 100
+        #print query_set.model
+        #print query_set.query
 
         if base_node and isinstance(base_node.abstract_node.selector, ModelSelector):
             if base_node.abstract_node.selector is self:
-                print "* Filter: ", self.get_filter(base_node.pattern, query_set)
+                if base_node.path == '/users/perenecabuto/deste_mes/':
+                    print "* Filter: ", self.get_filter(base_node.path, query_set)
+                    print base_node.path, query_set.model
+                    import ipdb; ipdb.set_trace()
 
                 query_set = query_set.filter(**self.get_filter(base_node.pattern, query_set))
                 base_node = self.get_next_model_selector_node(base_node)
 
-            if base_node and self.model_class == query_set.model:
-                print "? ", base_node.path, base_node.abstract_node.selector.model_class, query_set.model
-                print
+            if base_node:
+                #print "? ", base_node.path, base_node.abstract_node.selector.model_class, query_set.model
+                #print
 
                 query_set = base_node.abstract_node.selector.get_query_set(base_node, query_set)
 
@@ -94,19 +97,8 @@ class ModelSelector(Selector):
                 continue
 
             if query_set.model is not self.model_class:
-                field_names = []
                 fname = self.get_query_set_field_name_for_model(query_set, self.model_class)
-
-                if fname:
-                    field_names.append(fname)
-
-                if len(field_names) == 0:
-                    raise Exception("no column association found")
-
-                if len(field_names) != 1:
-                    raise Exception("more than 1 way to find column")
-
-                parsed_fields[i] = field_names[0] + '.' + parsed_fields[i]
+                parsed_fields[i] = fname + '.' + parsed_fields[i]
 
             field_filter = parsed_fields[i].replace(".", "__")
             filter_query[field_filter] = parsed_values[i]
@@ -115,15 +107,24 @@ class ModelSelector(Selector):
 
     def get_query_set_field_name_for_model(self, query_set, model):
         meta = query_set.model._meta
+        field_names = []
 
         for fname in meta.get_all_field_names():
             field = meta.get_field_by_name(fname)[0]
 
             if hasattr(field, 'model') and field.model == model:
-                return fname
+                field_names.append(fname)
 
             elif hasattr(field, 'rel') and field.rel and field.rel.to == model:
-                return fname
+                field_names.append(fname)
+
+        if len(field_names) > 1:
+            raise Exception("more than 1 way to find column: found(%s)" % ", ".join(field_names))
+
+        elif len(field_names) == 0:
+            raise Exception("no column association found")
+
+        return field_names[0]
 
     def get_model_field_names(self):
         return self.model_class._meta.get_all_field_names()
