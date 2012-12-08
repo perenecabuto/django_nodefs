@@ -17,8 +17,8 @@ from nodefs.lib import conf
 
 DEFAULT_PATH = '/'
 
-if hasattr(settings, 'DJANGO_NODEFS_TREE_DEFAULT_PATH'):
-    DEFAULT_PATH = settings.DJANGO_NODEFS_TREE_DEFAULT_PATH
+if hasattr(settings, 'NODEFS_TREE_DEFAULT_PATH'):
+    DEFAULT_PATH = settings.NODEFS_TREE_DEFAULT_PATH
 
 if hasattr(settings, 'NODEFS_PROFILE_MODULE') and not os.environ.get('NODEFS_PROFILE_MODULE'):
     os.environ['NODEFS_PROFILE_MODULE'] = settings.NODEFS_PROFILE_MODULE
@@ -82,8 +82,8 @@ def build_tree(node, current_url=None):
 def get_default_path():
     path = DEFAULT_PATH
 
-    if hasattr(settings, 'DJANGO_NODEFS_TREE_DYNAMIC_PATH_CALLBACK'):
-        callback_path = settings.DJANGO_NODEFS_TREE_DYNAMIC_PATH_CALLBACK
+    if hasattr(settings, 'NODEFS_TREE_DYNAMIC_PATH_CALLBACK'):
+        callback_path = settings.NODEFS_TREE_DYNAMIC_PATH_CALLBACK
         callback_import, callback_function_name = re.findall(r'^([\w.]+?)\.(\w+)$', callback_path)[0]
 
         __import__(callback_import)
