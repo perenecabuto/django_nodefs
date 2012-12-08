@@ -1,0 +1,3 @@
+include README.md
+recursive-include django_nodefs/templates *
+recursive-include django_nodefs/static *

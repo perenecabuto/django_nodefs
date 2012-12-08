@@ -1,4 +1,4 @@
-*.swp
+*.sw?
 #media/*/*
 tests/fixtures/static/*
 log/*

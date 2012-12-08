@@ -16,9 +16,19 @@ setup(
     keywords="Django, Fuse, Python",
     license='BSD',
     platforms=['linux'],
-    packages=find_packages(exclude=["tests*"]),
+    packages=find_packages(exclude=["tests/"]),
     include_package_data=True,
-    install_requires=open(os.path.join(PROJECT_DIR, 'requirements.txt')).read().splitlines(),
-    #classifiers=[]
+    #zip_safe=False,
+    install_requires=['Django==1.4.2'],
+    dependency_links=['git+git://github.com/perenecabuto/nodefs.git#egg=nodefs'],
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Framework :: Django',
+    ]
 )
 

@@ -1,23 +1,29 @@
-import json
+# -*- coding: utf-8 -*-
+
+import os
 import sys
 import re
+import json
 
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from django_nodefs.selectors import ModelSelector, ModelFileSelector
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.conf import settings
 
 from nodefs.lib.model import NodeManager
 from nodefs.lib import conf
-
-from contas.conf import nodefs_schema
-from django.conf import settings
 
 DEFAULT_PATH = '/'
 
 if hasattr(settings, 'DJANGO_NODEFS_TREE_DEFAULT_PATH'):
     DEFAULT_PATH = settings.DJANGO_NODEFS_TREE_DEFAULT_PATH
+
+if hasattr(settings, 'NODEFS_PROFILE_MODULE') and not os.environ.get('NODEFS_PROFILE_MODULE'):
+    os.environ['NODEFS_PROFILE_MODULE'] = settings.NODEFS_PROFILE_MODULE
+
+from nodefs.lib import profile
 
 
 def tree_widget(request):
@@ -33,7 +39,7 @@ def tree_json(request):
 
 
 def tree(request):
-    conf.node_profiles = nodefs_schema.schema
+    conf.node_profiles = profile.schema
     root_node = NodeManager().search_by_path(get_default_path())
 
     return build_tree(root_node, request.GET.get('current_url', ''))
