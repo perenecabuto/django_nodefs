@@ -6,12 +6,11 @@ import re
 import json
 
 from django.http import HttpResponse
-from django.core.urlresolvers import reverse
-from django_nodefs.selectors import ModelSelector, ModelFileSelector
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.conf import settings
 
+from django_nodefs.selectors import ModelSelector
 from nodefs.lib.model import NodeManager
 from nodefs.lib import conf
 
@@ -50,19 +49,7 @@ def build_tree(node, current_url=None):
     nodeselector = node.abstract_node.selector
 
     if isinstance(nodeselector, ModelSelector):
-        url = None
-
-        # Abs
-        from contas.controle.models import Conta, Controle
-
-        if 'este_ano' in node.path and issubclass(nodeselector.model_class, Controle):
-            obj = nodeselector.get_object(node)
-            url = reverse('controle.views.editar', kwargs={'mes': obj.mes, 'ano': obj.ano})
-
-        elif issubclass(nodeselector.model_class, Conta) and isinstance(nodeselector, ModelFileSelector):
-            obj = nodeselector.get_object(node)
-            url = obj.arquivo.url
-        # EndAbs
+        url = get_node_url(node, nodeselector)
 
         if url:
             tree['label'] = "<a href='%s'>%s</a>" % (url, node.pattern)
@@ -79,16 +66,32 @@ def build_tree(node, current_url=None):
     return tree
 
 
+def get_node_url(node, nodeselector):
+    url = None
+    callback = get_callback_from_settings('NODEFS_TREE_DISCOVER_URL_CALLBACK')
+
+    if callable(callback):
+        url = callback(node, nodeselector)
+
+    return url
+
+
 def get_default_path():
     path = DEFAULT_PATH
+    callback = get_callback_from_settings('NODEFS_TREE_DYNAMIC_PATH_CALLBACK')
 
-    if hasattr(settings, 'NODEFS_TREE_DYNAMIC_PATH_CALLBACK'):
-        callback_path = settings.NODEFS_TREE_DYNAMIC_PATH_CALLBACK
+    if callback:
+        path = callback()
+
+    return path
+
+
+def get_callback_from_settings(settings_var):
+    if hasattr(settings, settings_var):
+        callback_path = getattr(settings, settings_var)
         callback_import, callback_function_name = re.findall(r'^([\w.]+?)\.(\w+)$', callback_path)[0]
 
         __import__(callback_import)
         callback = getattr(sys.modules[callback_import], callback_function_name)
 
-        path = callback()
-
-    return path
+        return callback
