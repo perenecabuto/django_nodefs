@@ -46,6 +46,7 @@
 
 .nodefs > .tree > .node {
     margin-bottom: 7px;
+    padding-left: 0;
 }
 
 
