@@ -52,7 +52,7 @@ def build_tree(node, current_url=None):
         url = get_node_url(node, nodeselector)
 
         if url:
-            tree['label'] = "<a href='%s'>%s</a>" % (url, node.pattern)
+            tree['label'] = "<a data-model-node='true' href='%s'>%s</a>" % (url, node.pattern)
 
             if current_url and url in current_url:
                 tree['selected'] = True

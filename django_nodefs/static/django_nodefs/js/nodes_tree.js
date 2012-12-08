@@ -10,17 +10,15 @@ NodesTree.prototype = {
             var $nodeTree = $('<nav class="nodefs" />');
 
             that.buildTree(response, $nodeTree);
-
             parentElement.append($nodeTree);
             that.prepareEvents();
-
         });
     },
 
     prepareEvents: function() {
         var that = this;
 
-        $('.node .toggler, .node .label').on('click', function(e) {
+        $('.nodefs .node .toggler, .node .label').on('click', function(e) {
             var $node = $(this).parent('.node');
 
             if (e.target && e.target.href) {
@@ -36,9 +34,9 @@ NodesTree.prototype = {
             }
         });
 
-        $('.node.selected .label a').on('click', function() {
-            $('.node.selected .label:eq(0)').trigger('click');
-            return false;
+        $('.nodefs .node.selected > .label > a').on('click', function(e) {
+            e.preventDefault();
+            $(this).parent('.label').trigger('click');
         });
 
         $('[data-tree-collapse-button]').on('click', function() {
@@ -109,10 +107,8 @@ $.fn.nodesTree = function(options) {
     var nt = new NodesTree()
         jsonUrl = this.attr('data-url');
 
-    if (options) {
-        if (options.url) {
-            jsonUrl = options.url;
-        }
+    if (options && options.url) {
+        jsonUrl = options.url;
     }
 
     nt.renderTree(jsonUrl, this);
