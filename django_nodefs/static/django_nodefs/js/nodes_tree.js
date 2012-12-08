@@ -26,11 +26,9 @@ NodesTree.prototype = {
             }
 
             if ($node.hasClass('open')) {
-                that.registerNodeClose($node.attr('id'));
-                $node.removeClass('open').addClass('closed');
+                that.closeNode($node);
             } else if ($node.hasClass('closed')) {
-                that.registerNodeOpen($node.attr('id'));
-                $node.removeClass('closed').addClass('open');
+                that.openNode($node);
             }
         });
 
@@ -44,12 +42,31 @@ NodesTree.prototype = {
                 var $node = $(node);
 
                 that.registerNodeClose($node.attr('id'));
-                $node.removeClass('open').addClass('closed');
+                that.closeNode($node);
+            });
+        });
+
+        $('[data-tree-expand-button]').on('click', function() {
+            $('.node.closed').each(function(idx, node) {
+                var $node = $(node);
+
+                that.registerNodeClose($node.attr('id'));
+                that.openNode($node);
             });
         });
     },
 
-    nodeIsOpen: function(nodeId) {
+    openNode: function($node) {
+        $node.removeClass('closed').addClass('open');
+        this.registerNodeOpen($node.attr('id'));
+    },
+
+    closeNode: function($node) {
+        $node.removeClass('open').addClass('closed');
+        this.registerNodeClose($node.attr('id'));
+    },
+
+    nodeWasOpen: function(nodeId) {
         return $.cookie('nodefs_' + nodeId) != null;
     },
 
@@ -69,7 +86,7 @@ NodesTree.prototype = {
         var that = this,
             nodeElement = $('<li/>', { 'class': 'node', id: node.id });
 
-        nodeElement.addClass(this.nodeIsOpen(node.id) ? 'open' : 'closed');
+        nodeElement.addClass(this.nodeWasOpen(node.id) ? 'open' : 'closed');
 
         if (node.selected) {
             nodeElement.addClass('selected');

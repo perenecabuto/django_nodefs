@@ -44,6 +44,11 @@
     border-left: 1px dashed #444;
 }
 
+.nodefs > .tree > .node {
+    margin-bottom: 7px;
+}
+
+
 .nodefs .tree .node .toggler {
     background-repeat: no-repeat;
     background-position-x: right;
