@@ -19,7 +19,7 @@ NodesTree.prototype = {
         var that = this;
 
         $('.nodefs .node .toggler, .node .label').on('click', function(e) {
-            var $node = $(this).parent('.node');
+            var $node = $(this).closest('.node');
 
             if (e.target && e.target.href) {
                 return;
@@ -32,9 +32,16 @@ NodesTree.prototype = {
             }
         });
 
-        $('.nodefs .node.selected > .label > a').on('click', function(e) {
-            e.preventDefault();
-            $(this).parent('.label').trigger('click');
+        $('.nodefs .node > .label > a').on('click', function(e) {
+            var $node = $(this).closest('.node');
+
+            if ($node.hasClass('selected')) {
+                e.preventDefault();
+                $(this).closest('.label').trigger('click');
+            } else {
+                $('.node.selected').removeClass('selected');
+                $('[href="' + $(this).attr('href') + '"]').closest('.node').addClass('selected');
+            }
         });
 
         $('[data-tree-collapse-button]').on('click', function() {
