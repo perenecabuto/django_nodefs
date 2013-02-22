@@ -1,12 +1,4 @@
 /* Tree */
-.nodefs {
-    position: absolute;
-    margin: auto auto;
-    height: 90%;
-    width: 90%;
-    overflow: auto;
-}
-
 .nodefs .tree {
     margin-top: 5px;
     margin-bottom: 10px;
