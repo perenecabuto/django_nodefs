@@ -7,7 +7,7 @@ PROJECT_DIR = os.path.dirname(__file__)
 
 setup(
     name='django_nodefs',
-    version='0.5-beta',
+    version='0.6-beta',
     url='https://github.com/perenecabuto/django_nodefs.git',
     author="Felipe Ramos",
     author_email="perenecabuto@gmail.com",

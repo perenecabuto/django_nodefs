@@ -1,8 +1,8 @@
 from django.conf.urls.defaults import patterns, url
 
 urlpatterns = patterns(
-    '',
+    'django_nodefs.views',
 
-    url('^tree.json$', 'django_nodefs.views.tree_json'),
-    url('^tree.html$', 'django_nodefs.views.tree_widget'),
+    url('^tree.json$', 'tree_json'),
+    url('^tree.html$', 'tree_widget'),
 )
